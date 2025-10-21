@@ -1,0 +1,53 @@
+project_name: chessboard
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - main: ./cmd/main.go
+    binary: chessboard
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.Date}}
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+
+archives:
+  - format: tar.gz
+    name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
+    files:
+      - LICENSE
+      - README.md
+
+checksum:
+  name_template: "checksums.txt"
+
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  sort: asc
+  groups:
+    - title: New Features
+      regexp: "^.*feat[(:].*$"
+      order: 0
+    - title: Bug Fixes
+      regexp: "^.*fix[(:].*$"
+      order: 1
+    - title: Other Changes
+      order: 999
+
+release:
+  github:
+    owner: RD2W
+    name: chessboard

@@ -1,0 +1,51 @@
+name: Dev to Main Merge
+
+on:
+  pull_request:
+    branches: [ main ]
+    types: [opened, synchronize, reopened]
+
+jobs:
+  validate-merge:
+    name: Validate PR from dev to main
+    runs-on: ubuntu-latest
+    if: github.head_ref == 'dev'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.head_ref }}
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.25'
+        cache: true
+
+    - name: Run comprehensive tests
+      run: |
+        go test -v -race -coverprofile=coverage.out ./...
+        go tool cover -func=coverage.out
+
+    - name: Build production binary
+      run: |
+        CGO_ENABLED=0 go build -ldflags="-w -s" -o chessboard ./cmd/main.go
+        ./chessboard --version || echo "Binary built successfully"
+
+    - name: Check binary size
+      run: |
+        ls -lh chessboard
+        size=$(stat -f%z chessboard 2>/dev/null || stat -c%s chessboard)
+        echo "Binary size: $size bytes"
+        if [ $size -gt 10000000 ]; then
+          echo "Binary too large!"
+          exit 1
+        fi
+
+    - name: Upload production binary
+      uses: actions/upload-artifact@v4
+      with:
+        name: chessboard-production-${{ github.run_id }}
+        path: chessboard
+        retention-days: 1
