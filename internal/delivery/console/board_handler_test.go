@@ -231,6 +231,7 @@ func TestNewBoardHandler(t *testing.T) {
 
 	if handler == nil {
 		t.Error("NewBoardHandler вернул nil")
+		return
 	}
 
 	if handler.boardService != mockService {
