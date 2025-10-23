@@ -17,8 +17,6 @@ builds:
       - -X main.version={{.Version}}
       - -X main.commit={{.Commit}}
       - -X main.date={{.Date}}
-    asmflags:
-      - -trimpath={{.Env.GOPATH}}
     flags:
       - -a
     tags:
