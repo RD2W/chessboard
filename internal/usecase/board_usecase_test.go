@@ -110,6 +110,7 @@ func TestBoardUsecase_CreateBoard(t *testing.T) {
 
 		if board == nil {
 			t.Error("CreateBoard вернул nil")
+			return
 		}
 		if board.Size != 8 {
 			t.Errorf("ожидался размер доски 8, получен %d", board.Size)
@@ -124,6 +125,7 @@ func TestBoardUsecase_CreateBoard(t *testing.T) {
 
 		if board == nil {
 			t.Error("CreateBoard вернул nil")
+			return
 		}
 		if board.Size != domain.DefaultBoardSize {
 			t.Errorf("при невалидном размере ожидался размер по умолчанию %d, получен %d",
@@ -139,6 +141,7 @@ func TestBoardUsecase_CreateBoard(t *testing.T) {
 
 		if board == nil {
 			t.Error("CreateBoard вернул nil")
+			return
 		}
 		if board.Size != domain.DefaultBoardSize {
 			t.Errorf("при невалидном размере ожидался размер по умолчанию %d, получен %d",
@@ -292,6 +295,7 @@ func TestNewBoardRepository(t *testing.T) {
 	board := repo.GenerateBoard(8)
 	if board == nil {
 		t.Error("GenerateBoard вернул nil")
+		return
 	}
 	if board.Size != 8 {
 		t.Errorf("ожидался размер доски 8, получен %d", board.Size)
@@ -331,9 +335,15 @@ func BenchmarkValidateSize(b *testing.B) {
 	repo := &MockBoardRepository{}
 	usecase := NewBoardUsecase(repo)
 
+	// Предварительная проверка что ошибок не будет
+	if err := usecase.ValidateSize(8); err != nil {
+		b.Skipf("skipping benchmark due to setup error: %v", err)
+		return
+	}
+
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		usecase.ValidateSize(8)
+		_ = usecase.ValidateSize(8)
 	}
 }
 
