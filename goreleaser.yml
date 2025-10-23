@@ -1,3 +1,5 @@
+version: 2
+
 project_name: chessboard
 
 before:
@@ -7,11 +9,22 @@ before:
 builds:
   - main: ./cmd/main.go
     binary: chessboard
+    gcflags:
+      - all=-trimpath
     ldflags:
       - -s -w
+      - -buildmode=pie
       - -X main.version={{.Version}}
       - -X main.commit={{.Commit}}
       - -X main.date={{.Date}}
+    asmflags:
+      - -trimpath={{.Env.GOPATH}}
+    flags:
+      - -a
+    tags:
+      - osusergo
+      - netgo
+      - static_build
     env:
       - CGO_ENABLED=0
     goos:
@@ -23,17 +36,13 @@ builds:
       - arm64
 
 archives:
-  - format: tar.gz
-    name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
+  - name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
     files:
       - LICENSE
       - README.md
 
 checksum:
   name_template: "checksums.txt"
-
-snapshot:
-  name_template: "{{ incpatch .Version }}-next"
 
 changelog:
   sort: asc
